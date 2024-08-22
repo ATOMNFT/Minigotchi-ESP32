@@ -21,7 +21,6 @@
  */
 
 #include "minigotchi.h"
-#include "AXP192.h"
 
 /** developer note:
  *
@@ -34,10 +33,47 @@
 // this code is pretty disgusting and shitty but it makes minigotchi.ino less
 // cluttered!!!
 
+// initializing values
 Mood &Minigotchi::mood = Mood::getInstance();
+WebUI *Minigotchi::web = nullptr;
 
 // current epoch val
 int Minigotchi::currentEpoch = 0;
+
+/**
+ * WebUI task for freeRTOS
+ */
+void Minigotchi::WebUITask(void *pvParameters) {
+  // setup web server
+  WebUI *web = new WebUI();
+
+  // hang until something cool happens (this is not cool trust me)
+  while (!Config::configured) {
+    taskYIELD(); // wait
+  }
+
+  // clean up when done
+  delete web;
+  web = nullptr; // crowdstrike forgot about this one lol
+
+  // delete task
+  vTaskDelete(NULL);
+}
+
+/**
+ * Wait for WebUI to get input that the configuration is done
+ */
+void Minigotchi::waitForInput() {
+  // on core one
+  if (!Config::configured) {
+    xTaskCreatePinnedToCore(WebUITask, "WebUI Task", 8192, NULL, 1, NULL, 1);
+  }
+
+  // wait until it's done
+  while (!Config::configured) {
+    delay(1);
+  }
+}
 
 /**
  * Increment/increase current epoch by one
@@ -84,7 +120,7 @@ void Minigotchi::boot() {
   Serial.println(" ");
   Serial.println(mood.getHappy() +
                  " Hi, I'm Minigotchi, your pwnagotchi's best friend!");
-  Display::updateDisplay(mood.getHappy(), "Hi,       I'm Minigotchi");
+  Display::updateDisplay(mood.getHappy(), "Hi, I'm Minigotchi");
   Serial.println(" ");
   Serial.println(mood.getNeutral() +
                  " You can edit my configuration parameters in config.cpp!");
@@ -100,10 +136,26 @@ void Minigotchi::boot() {
   Serial.println("#                BOOTUP PROCESS                #");
   Serial.println("################################################");
   Serial.println(" ");
-  ESP_ERROR_CHECK(esp_wifi_init(&Config::config));
+  ESP_ERROR_CHECK(esp_wifi_init(&Config::wifiCfg));
+  esp_err_t err = nvs_flash_init();
+  if (err == ESP_ERR_NVS_NO_FREE_PAGES ||
+      err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+    ESP_ERROR_CHECK(nvs_flash_erase());
+    err = nvs_flash_init();
+  }
+
+  Config::loadConfig();
+  ESP_ERROR_CHECK(err);
   ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
+  ESP_ERROR_CHECK(esp_wifi_set_country(&Config::ctryCfg));
   ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
   ESP_ERROR_CHECK(esp_wifi_start());
+
+  // wait for the webui configuration
+  if (!Config::configured) {
+    waitForInput();
+  }
+
   Deauth::list();
   Channel::init(Config::channel);
   Minigotchi::info();

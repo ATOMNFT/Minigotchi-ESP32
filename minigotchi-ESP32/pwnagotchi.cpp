@@ -77,13 +77,13 @@ void Pwnagotchi::detect() {
     // cool animation
     for (int i = 0; i < 5; ++i) {
       Serial.println(mood.getLooking1() + " Scanning for Pwnagotchi.");
-      Display::updateDisplay(mood.getLooking1(), "Scanning  for Pwnagotchi.");
+      Display::updateDisplay(mood.getLooking1(), "Scanning for Pwnagotchi.");
       delay(Config::shortDelay);
       Serial.println(mood.getLooking2() + " Scanning for Pwnagotchi..");
-      Display::updateDisplay(mood.getLooking2(), "Scanning  for Pwnagotchi..");
+      Display::updateDisplay(mood.getLooking2(), "Scanning for Pwnagotchi..");
       delay(Config::shortDelay);
       Serial.println(mood.getLooking1() + " Scanning for Pwnagotchi...");
-      Display::updateDisplay(mood.getLooking1(), "Scanning  for Pwnagotchi...");
+      Display::updateDisplay(mood.getLooking1(), "Scanning for Pwnagotchi...");
       delay(Config::shortDelay);
       Serial.println(" ");
       delay(Config::shortDelay);
@@ -203,6 +203,10 @@ void Pwnagotchi::pwnagotchiCallback(void *buf,
           Serial.println(mood.getHappy() + " Successfully parsed json!");
           Serial.println(" ");
           Display::updateDisplay(mood.getHappy(), "Successfully parsed json!");
+          // find minigotchi/palnagotchi
+          bool pal = jsonBuffer["pal"].as<bool>();
+          bool minigotchi = jsonBuffer["minigotchi"].as<bool>();
+
           // find out some stats
           String name = jsonBuffer["name"].as<String>();
           delay(Config::shortDelay);
@@ -217,17 +221,45 @@ void Pwnagotchi::pwnagotchiCallback(void *buf,
             pwndTot = "N/A";
           }
 
-          // print the info
-          Serial.print(mood.getHappy() + " Pwnagotchi name: ");
-          Serial.println(name);
-          Serial.print(mood.getHappy() + " Pwned Networks: ");
-          Serial.println(pwndTot);
-          Serial.print(" ");
-          Display::updateDisplay(mood.getHappy(),
-                                 "Pwnagotchi name: " + (String)name);
-          delay(Config::shortDelay);
-          Display::updateDisplay(mood.getHappy(),
-                                 "Pwned Networks: " + (String)pwndTot);
+          String deviceType = "";
+
+          // minigotchi or palnagotchi stuff
+          if (minigotchi || pal) {
+            if (minigotchi) {
+              deviceType = "Minigotchi";
+            }
+
+            if (pal) {
+              deviceType = "Palnagotchi";
+            }
+
+            // show corresponding type
+            Serial.print(mood.getHappy() + " " + deviceType + " name: ");
+            Serial.println(name);
+            Serial.print(mood.getHappy() + " Pwned Networks: ");
+            Serial.println(pwndTot);
+            Serial.print(" ");
+            Display::updateDisplay(mood.getHappy(),
+                                   deviceType + " name: " + (String)name);
+            delay(Config::shortDelay);
+            Display::updateDisplay(mood.getHappy(),
+                                   "Pwned Networks: " + (String)pwndTot);
+            // reset
+            deviceType = "";
+          } else {
+            // this should be a pwnagotchi
+            Serial.print(mood.getHappy() + " Pwnagotchi name: ");
+            Serial.println(name);
+            Serial.print(mood.getHappy() + " Pwned Networks: ");
+            Serial.println(pwndTot);
+            Serial.print(" ");
+            Display::updateDisplay(mood.getHappy(),
+                                   "Pwnagotchi name: " + (String)name);
+            delay(Config::shortDelay);
+            Display::updateDisplay(mood.getHappy(),
+                                   "Pwned Networks: " + (String)pwndTot);
+          }
+
           delay(Config::shortDelay);
           Parasite::sendPwnagotchiStatus(FRIEND_FOUND, name.c_str());
         }

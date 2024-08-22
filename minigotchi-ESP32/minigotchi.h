@@ -23,20 +23,29 @@
 #ifndef MINIGOTCHI_H
 #define MINIGOTCHI_H
 
+#include "AXP192.h"
 #include "channel.h"
 #include "config.h"
 #include "deauth.h"
 #include "display.h"
 #include "frame.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
+#include "freertos/task.h"
 #include "mood.h"
+#include "nvs.h"
+#include "nvs_flash.h"
 #include "parasite.h"
 #include "pwnagotchi.h"
+#include "webui.h"
 #include <Arduino.h>
 #include <WiFi.h>
 #include <esp_wifi.h>
 
-// forward declaration of mood class
+// forward declaration of classes
 class Mood;
+class WebUI;
+
 class Minigotchi {
 public:
   static void boot();
@@ -53,10 +62,15 @@ public:
   static void advertise();
   static void epoch();
   static int addEpoch();
+  static void loadConfig();
+  static void saveConfig();
   static int currentEpoch;
 
 private:
+  static void WebUITask(void *pvParameters);
+  static void waitForInput();
   static Mood &mood;
+  static WebUI *web;
 };
 
 #endif // MINIGOTCHI_H

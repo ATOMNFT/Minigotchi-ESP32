@@ -25,6 +25,7 @@
 
 #include "minigotchi.h"
 #include "parasite.h"
+#include "webui.h"
 #include <Arduino.h>
 #include <esp_wifi.h>
 #include <iostream>
@@ -37,6 +38,8 @@ public:
   static bool deauth;
   static bool advertise;
   static bool scan;
+  static const char *ssid;
+  static const char *pass;
   static int shortDelay;
   static int longDelay;
   static bool parasite;
@@ -77,7 +80,11 @@ public:
   static std::string session_id;
   static int uptime;
   static std::string version;
-  static wifi_init_config_t config;
+  static wifi_init_config_t wifiCfg;
+  static wifi_country_t ctryCfg;
+  static bool configured;
+  static void loadConfig();
+  static void saveConfig();
 
 private:
   static int random(int min, int max);
