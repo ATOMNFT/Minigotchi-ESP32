@@ -1,11 +1,3 @@
-# ⚠️ Project Archived
-
-> [!WARNING]
-> I will no longer continue development due to a lack of maintenance and time. Use at your own risk, any issue made will not be acknowledged. However, I may return to this project, although this is unlikely.
-
-<details>
-<summary>Old README.md</summary>
-
 # minigotchi-ESP32 - ミニゴッチ
 
 <img alt="GitHub code size in bytes" src="https://img.shields.io/github/languages/code-size/Pwnagotchi-Unofficial/minigotchi-ESP32"></img>
@@ -86,6 +78,6 @@ See the [wiki](https://github.com/Pwnagotchi-Unofficial/minigotchi/wiki/Communic
 
 - [arduino-ESP32](https://github.com/espressif/arduino-esp32), the core Arduino libraries for the.
 
-**Made with ❤️ by [@dj1ch](https://github.com/dj1ch) and the rest of the Pwnagotchi-Unofficial team!**
+- I'd also like to thank [PiSugar](https://www.pisugar.com/) for the partnership with Pwnagotchi-Unofficial! Your batteries are amazing and have contributed heavily in the creation of this project.
 
-</details>
+**Made with ❤️ by [@dj1ch](https://github.com/dj1ch) and the rest of the Pwnagotchi-Unofficial team!**
