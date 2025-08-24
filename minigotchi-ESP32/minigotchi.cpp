@@ -1,6 +1,6 @@
 /*
  * Minigotchi: An even smaller Pwnagotchi
- * Copyright (C) 2024 dj1ch
+ * Copyright (C) 2025 dj1ch
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -92,8 +92,11 @@ void Minigotchi::epoch() {
   Serial.print(mood.getNeutral() + " Current Epoch: ");
   Serial.println(Minigotchi::currentEpoch);
   Serial.println(" ");
-  Display::updateDisplay(mood.getNeutral(),
-                         "Current Epoch: " + Minigotchi::currentEpoch);
+
+  // save some memory
+  char buf[32];
+  sprintf(buf, "Current Epoch: %d", Minigotchi::currentEpoch);
+  Display::updateDisplay(mood.getNeutral(), buf);
 }
 
 /**
@@ -130,7 +133,7 @@ void Minigotchi::boot() {
   delay(Config::shortDelay);
   Serial.println(mood.getIntense() + " Starting now...");
   Serial.println(" ");
-  Display::updateDisplay(mood.getIntense(), "Starting  now");
+  Display::updateDisplay(mood.getIntense(), "Starting now");
   delay(Config::shortDelay);
   Serial.println("################################################");
   Serial.println("#                BOOTUP PROCESS                #");
@@ -265,24 +268,15 @@ void Minigotchi::monStop() {
   WiFi.mode(WIFI_STA);
 }
 
-/** developer note:
- *
- * when the minigotchi isn't cycling, detecting a pwnagotchi, or deauthing,
- * it is advertising it's own presence, hence the reason there being a constant
- * Frame::stop(); and Frame::start(); in each function
- *
- * when it comes to any of these features, you can't just call something and
- * expect it to run normally ex: calling Deauth::deauth(); because you're gonna
- * get the error:
- *
- * (X-X) No access point selected. Use select() first.
- * ('-') Told you so!
- *
- * the card is still busy in monitor mode on a certain channel(advertising), and
- * the AP's we're looking for could be on other channels hence we need to call
- * Frame::stop(); to stop this then we can do what we want...
- *
+/**
+ * Display check
  */
+void Minigotchi::displayCheck() {
+  while (!Display::isQueueEmpty() || Display::isShowingMsg()) {
+    Display::displayCheck();
+    delay(10);
+  }
+}
 
 /**
  * Channel cycling
@@ -290,6 +284,9 @@ void Minigotchi::monStop() {
 void Minigotchi::cycle() {
   Parasite::readData();
   Channel::cycle();
+
+  // update display so that it shows that it's scanning w/o queue
+  Display::updateDisplay(mood.getSleeping(), "Scanning for pwnagotchi...");
 }
 
 /**

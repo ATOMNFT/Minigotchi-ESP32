@@ -1,6 +1,6 @@
 /*
  * Minigotchi: An even smaller Pwnagotchi
- * Copyright (C) 2024 dj1ch
+ * Copyright (C) 2025 dj1ch
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,16 +25,36 @@
 
 #include "config.h"
 #include "mood.h"
+#include <queue>
 
 // words cannot describe how much space this has saved me
 #if disp
+
+#if SSD1306 || WEMOS_OLED_SHIELD || SSD1305
 #include <Adafruit_GFX.h>
+#endif
+
+#if SSD1305
 #include <Adafruit_SSD1305.h>
+#endif
+
+#if SSD1306
 #include <Adafruit_SSD1306.h>
+#endif
+
+#if M5ATOMS3 || M5ATOMSR3
 #include <M5Unified.h>
-#include <SPI.h>
-#include <TFT_eSPI.h> // Defines the TFT_eSPI library for CYD
+#endif
+
+#if M5STICKCP || M5STICKCP2 || T_DISPLAY_S3 || CYD || M5CARDPUTER
+#include <TFT_eSPI.h>
+#endif
+
+#if IDEASPARK_SSD1306 || SH1106
 #include <U8g2lib.h>
+#endif
+
+#include <SPI.h>
 #include <Wire.h>
 #endif
 
@@ -77,6 +97,12 @@
 #define T_DISPLAY_S3_WIDTH 320
 #define T_DISPLAY_S3_HEIGHT 170
 
+struct DisplayMessage {
+  String mood;
+  String text;
+  bool pending;
+};
+
 class Display {
 public:
   static void startScreen();
@@ -89,13 +115,35 @@ public:
   static String previousText;
   ~Display();
 
+  static void queueDisplayUpdate(const String mood, const String text);
+  static void displayCheck();
+
+  static bool isQueueEmpty();
+  static bool isShowingMsg();
+
 private:
+  static std::queue<DisplayMessage> displayQueue;
+  static DisplayMessage currentMsg;
+  static DisplayMessage displayMsgBuf;
+  static bool showingMsg;
+  static unsigned long lastUpdate;
+  static unsigned long delayTime;
 #if disp
+#if SSD1306 || WEMOS_OLED_SHIELD
   static Adafruit_SSD1306 *ssd1306_adafruit_display;
+#endif
+#if SSD1305
   static Adafruit_SSD1305 *ssd1305_adafruit_display;
+#endif
+#if IDEASPARK_SSD1306
   static U8G2_SSD1306_128X64_NONAME_F_SW_I2C *ssd1306_ideaspark_display;
+#endif
+#if SH1106
   static U8G2_SH1106_128X64_NONAME_F_SW_I2C *sh1106_adafruit_display;
+#endif
+#if M5STICKCP || M5STICKCP2 || T_DISPLAY_S3 || CYD || M5CARDPUTER
   static TFT_eSPI *tft_display;
+#endif
 #endif
 };
 
